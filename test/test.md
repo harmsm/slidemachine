@@ -31,7 +31,17 @@ stupid
 
 ##Slide 5
 
-![inkscape](slide-template.svg) 100,110,111
+![inkscape](slide-template.svg) 
+
+>>>>
+
+##Slide 6
+
+![inkscape](slide-template.svg) 100,110,111,000,101
+
+>>>
+
+![inkscape](slide-template.svg) 111 
 
 >>>
 

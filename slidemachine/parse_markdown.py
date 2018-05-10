@@ -10,7 +10,7 @@ import mistune
 import sys, re, copy, os, random, string, shutil, hashlib
 
 
-def _split_string(s, delim, escape='\\', unescape=True):
+def _split_string(s, delim, escape='\\'):
     """
     Split a string on delim, properly accounting for escape. Not particularly
     fast, but I'm not anticipating parsing huge markdown files.
@@ -25,13 +25,9 @@ def _split_string(s, delim, escape='\\', unescape=True):
     for ch in itr:
         if ch == escape:
             try:
-                # skip the next character; it has been escaped!
-                if not unescape:
-                    current.append(escape)
                 current.append(next(itr))
             except StopIteration:
-                if unescape:
-                    current.append(escape)
+                current.append(escape)
         elif ch == delim:
             # split! (add current to the list and reset it)
             ret.append(''.join(current))
@@ -45,7 +41,7 @@ class SlideMachine:
     """
     """
 
-    def __init__(self,md_file,img_dir="img",slide_break=">>>"):
+    def __init__(self,md_file,img_dir="slidemachine",slide_break=">>>"):
 
         self._md_file = md_file
         self._img_dir = img_dir
@@ -232,8 +228,9 @@ class SlideMachine:
                     # If there's leftover junk, treat it as layer configs
                     layer_configs = None
                     if len(tmp2) > 1:
-                        layer_configs = tmp2[1].split(",")
-                        layer_configs = [l.strip() for l in layer_configs]
+                        if tmp2[1].strip() != "":
+                            layer_configs = tmp2[1].split(",")
+                            layer_configs = [l.strip() for l in layer_configs]
 
 
                     # Create temporary output directory
@@ -308,9 +305,9 @@ class SlideMachine:
         out = []
         for i, s in enumerate(self._slides):
             if self._transitions[i] is not None:
-                start = "<section {:}>\n\n".format(self._transitions[i])
+                start = "<section {:}>\n".format(self._transitions[i])
             else:
-                start = "<section>\n\n"
+                start = "<section>\n"
 
             middle = self._markdown("".join(s))
             middle = middle.split("\n")

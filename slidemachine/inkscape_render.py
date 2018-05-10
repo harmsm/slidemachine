@@ -251,7 +251,7 @@ class InkscapeSVG:
         cmd.append(output_flag.format(output_file))
 
         # Run the command
-        result = subprocess.run(cmd)
+        result = subprocess.check_output(cmd)
 
         # Make sure the command wrote an output error
         if not os.path.isfile(output_file):
@@ -333,11 +333,8 @@ class InkscapeSVG:
             # Render output
             out_name = "{}_{}.{}".format(output_root,config_name,format)
 
-            print(out_name)
-
             # Only render if we haven't already rendered this configuration
             try:
-                print(out_name)
                 configs_seen[out_name]
             except KeyError:
                 configs_seen[out_name] = 0
