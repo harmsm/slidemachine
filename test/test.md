@@ -2,9 +2,9 @@
 
 is about cows
 
->>>>>
+>>>>>>
 
-#Slide 2 
+#Slide 2
 
 is about dogs
 
@@ -31,7 +31,7 @@ stupid
 
 ##Slide 5
 
-![inkscape](slide-template.svg) layer1,layer2,layer3
+![inkscape](slide-template.svg) 100,110,111
 
 >>>
 

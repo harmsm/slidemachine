@@ -311,7 +311,17 @@ class InkscapeSVG:
                 err = "layer_configs must have at least one configuration\n"
                 raise ValueError(err)
 
+            # If user specified 100101, convert to boolean
+            tmp = []
+            for config in layer_configs:
+                if type(config) is str:
+                    tmp.append([bool(int(c)) for c in list(config)])
+                else:
+                    tmp.append(config)
 
+            layer_configs = copy.deepcopy(tmp)
+
+        configs_seen = {}
 
         # Go through each layer configuration
         rendered = []
@@ -322,7 +332,16 @@ class InkscapeSVG:
 
             # Render output
             out_name = "{}_{}.{}".format(output_root,config_name,format)
-            self.render(out_name,text_to_path)
+
+            print(out_name)
+
+            # Only render if we haven't already rendered this configuration
+            try:
+                print(out_name)
+                configs_seen[out_name]
+            except KeyError:
+                configs_seen[out_name] = 0
+                self.render(out_name,text_to_path)
 
             # Record that we rendered this layer
             rendered.append(out_name)
@@ -331,7 +350,6 @@ class InkscapeSVG:
         self._current_svg = copy.deepcopy(current_state)
 
         # Return list of rendered files
-
         return rendered
 
     @property
