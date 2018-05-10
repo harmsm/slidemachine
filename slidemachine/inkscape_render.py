@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 __description__ = \
 """
 Render the layers in an Inkscape-generated svg file into a collection of
@@ -259,7 +260,7 @@ class InkscapeSVG:
 
     def render_stack(self,output_root,format="svg",text_to_path=True):
         """
-        Render the stack of layers.
+        Render the stack of layers. Returns a list of the rendered files.
         """
 
         current_state = copy.deepcopy(self._current_svg)
@@ -268,12 +269,18 @@ class InkscapeSVG:
         for layer_id in self._include_in_stack:
             self._toggle_layer(layer_id,layer_on=False)
 
+        rendered = []
         for layer_id in self._include_in_stack:
             self._toggle_layer(layer_id,layer_on=True)
             out_name = "{}_{}.{}".format(output_root,layer_id,format)
             self.render(out_name,text_to_path)
 
+            rendered.append(out_name)
+
         self._current_svg = copy.deepcopy(current_state)
+
+        return rendered
+
 
     @property
     def svg(self):
@@ -306,7 +313,7 @@ def main(argv=None):
     parser.add_argument("--layers",type=str,default=None,
                         help="file with list of layers to include")
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     svg_file = args.svg_file[0]
     if args.root is None:
         output_root = svg_file[:-4]
@@ -317,7 +324,7 @@ def main(argv=None):
 
     layer_list = None
     if args.layers is not None:
-        
+
         f = open(args.layers,'r')
         lines = f.readlines()
         f.close()

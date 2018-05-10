@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+
+        <!-- CUSTOMIZE METADATA HERE -->
+        <title>Presentation</title>
+        <meta name="description" content="An html slideshow">
+        <meta name="author" content="Michael J. Harms">
+
+
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+
+        <link rel="stylesheet" href="reveal/css/reveal.css">
+        <link rel="stylesheet" href="reveal/css/theme/white.css" id="theme">
+
+        <!-- Code syntax highlighting -->
+        <link rel="stylesheet" href="reveal/lib/css/zenburn.css">
+
+        <!-- Printing and PDF exports -->
+        <script>
+            var link = document.createElement( 'link' );
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = window.location.search.match( /print-pdf/gi ) ? 'reveal/css/print/pdf.css' : 'reveal/css/print/paper.css';
+            document.getElementsByTagName( 'head' )[0].appendChild( link );
+        </script>
+
+        <!-- Add boostrap css (not included in reveal.js)-->
+        <link rel="stylesheet" href="presentation-data/css/bootstrap.min.css">
+        <!-- CUSTOMIZE STYLESHEET HERE -->
+        <link rel="stylesheet" href="presentation-data/css/override.css">
+
+    </head>
+
+    <body>
+
+        <!-- CUSTOMIZE SLIDES HERE -->
+        <div class="reveal">
+            <!-- Any section element inside of this container is a slide -->
+            <div class="slides">
+
+            </div>
+        </div>
+
+        <!-- Reveal.js Configurations (See their docs)-->
+
+        <script src="reveal/lib/js/head.min.js"></script>
+        <script src="reveal/js/reveal.js"></script>
+
+        <script>
+
+            // Full list of configuration options available at:
+            // https://github.com/hakimel/reveal.js#configuration
+            Reveal.initialize({
+                controls: true,
+                progress: true,
+                history: true,
+                center: true,
+                width: 960,
+                height: 700,
+                transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+                // Add math
+                math: {
+                    mathjax: 'MathJax/MathJax.js', //https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js',
+                    config: 'TeX-AMS_HTML-full'  // See http://docs.mathjax.org/en/latest/config-files.html
+                },
+
+                // Optional reveal.js plugins
+                dependencies: [
+                    { src: 'reveal/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+                    { src: 'reveal/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                    { src: 'reveal/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                    { src: 'reveal/plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+                    { src: 'reveal/plugin/zoom-js/zoom.js', async: true },
+                    { src: 'reveal/plugin/notes/notes.js', async: true },
+                    { src: 'reveal/plugin/math/math.js', async: true },    // mathjax
+                    { src: 'presentation-data/lib/jquery-1.11.2.min.js' }, //'https://code.jquery.com/jquery-2.1.4.min.js' } ,
+                    { src: 'presentation-data/lib/bootstrap.min.js' } //https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js' } ,
+                    //{ src: 'https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js' }
+                ]
+            });
+
+        </script>
+
+    </body>
+</html>
