@@ -412,27 +412,3 @@ class MergerRevealHtml:
         f = open(output_file,"w")
         f.write(out)
         f.close()
-
-
-
-def main(argv=None):
-
-    if argv is None:
-        argv = sys.argv[1:]
-
-    try:
-        markdown_file = argv[0]
-        reveal_html_file = argv[1]
-    except IndexError:
-        err = "Incorrect arguments. Usage:\n\n{}\n\n".format(__usage__)
-        raise IndexError(err)
-
-    sm = SlideMachine(markdown_file)
-    html = sm.process()
-
-    reveal = MergerRevealHtml(reveal_html_file)
-    reveal.merge(html,"rock.html")
-
-
-if __name__ == "__main__":
-    main()
