@@ -12,13 +12,12 @@ from xml.dom import minidom
 
 class InkscapeSVG:
     """
-    Class that holds an inkscape svg file and manipulates layers.
+    Class that holds an inkscape svg file and allows manipulation of layers.
     """
 
-    def __init__(self,svg_file,layer_list=None):
+    def __init__(self,svg_file):
 
         self._svg_file = svg_file
-        self._layer_list = layer_list
 
         # Read in the svg file
         f = open(svg_file)
@@ -47,7 +46,7 @@ class InkscapeSVG:
         group_list = xmldoc.getElementsByTagName('g')
 
         # Go through each group
-        include_in_stack = []
+        self._layer_list = []
         for g in group_list:
 
             # See if this is a layer (inkscape:groupmode="layer")
@@ -61,64 +60,21 @@ class InkscapeSVG:
             # Grab the layer id
             layer_id = g.attributes['id'].value
 
-            # If the user specifies a list of layers to take, grab any layer
-            # that matches
-            if self._layer_list is not None:
-                if layer_id in self._layer_list:
-                    include_in_stack.append(layer_id)
-                else:
-                    continue
-
-            # If the user does not specify a list of layers, only take those
-            # that are visible
-            else:
-
-                try:
-                    style = g.attributes['style'].value
-
-                    # Hidden layer -- ignore it
-                    if style == "display:none":
-                        continue
-
-                except KeyError:
-                    pass
-
-                include_in_stack.append(layer_id)
-
-        # If a layer list is specified, make sure that all of those layers were
-        # found.  Sort them into the same order as layer_list.
-        if self._layer_list is not None:
-            layer_list_to_sort = copy.deepcopy(self._layer_list)
-            found_layers_to_sort = copy.deepcopy(include_in_stack)
-
-            layer_list_to_sort.sort()
-            found_layers_to_sort.sort()
-
-            if len(layer_list_to_sort) != len(found_layers_to_sort):
-                err = "Not all layers found.\n"
-                raise ValueError(err)
-
-            score = sum([layer_list_to_sort[i] == l
-                         for i, l in enumerate(found_layers_to_sort)])
-            if score != len(layer_list_to_sort):
-                err = "Duplicate layers found.\n"
-                raise ValueError(err)
-
-            self._include_in_stack = copy.deepcopy(include_in_stack)
-
-        # If no layer list is specified, show the layers in reverse order
-        # relative to when found in the file, as Inkscape stores the top layer
-        # at the bottom of the file.
-        else:
-            include_in_stack.reverse()
-            self._include_in_stack = copy.deepcopy(include_in_stack)
+            self._layer_list.append(layer_id)
 
 
     def _toggle_layer(self,layer_id,layer_on):
         """
-        Edit an svg_string so that layer_id is visible (layer_on = True)
+        Edit the svg file so that layer_id is visible (layer_on = True)
         or invisible (layer_on = False).
         """
+
+        # Sanity check
+        if layer_id not in self._layer_list:
+            err = "layer ({}) not in file.\n".format(layer_id)
+            raise ValueError(err)
+
+        layer_on = bool(layer_on)
 
         # Set search strings appropriately for turning on or off
         if layer_on:
@@ -137,23 +93,27 @@ class InkscapeSVG:
         before, after = layer_pattern.split(self._current_svg)
 
         # Take the last tag start from before the layer_id
-        tag_start = None
 
         # Iterate through all matches --> tag_start will be last match by
         # the end of loop
+        tag_start = None
         for tag_start in self._before_pattern.finditer(before):
             pass
 
+        # If we did not actually find the beginning of the tag
         if tag_start is None:
-            err = "mangled xml\n"
+            err = "Mangled xml.\n"
             raise ValueError(err)
 
+        # Record the position of that tag
         tag_start = tag_start.end()
 
-        # Take the first tag from after the layer id
+        # Take the first tag terminator that occurs after the layer_id
         tag_end = self._after_pattern.search(after).start()
 
-        # Replace style attribute if before the layer_id
+        # Replace style attribute with appropriate transition.
+
+        # If before the layer_id
         style_attribute_found = False
         if self._style_pattern.search(before[tag_start:]):
 
@@ -165,7 +125,7 @@ class InkscapeSVG:
 
             style_attribute_found = True
 
-        # Replace style attribute if after the layer_id
+        # If after the layer_id
         if self._style_pattern.search(after[:tag_end]):
 
             # Multiple style attributes in the same tag!
@@ -181,7 +141,7 @@ class InkscapeSVG:
 
             style_attribute_found = True
 
-        # If there is not style attribute, make one
+        # If there was not a style attribute already, make one
         if not style_attribute_found:
 
             a1 = after[:tag_end]
@@ -192,26 +152,74 @@ class InkscapeSVG:
         # Reassemble output string
         self._current_svg = "{}{}{}".format(before,layer_string,after)
 
-    def _write_file(self,output_file):
+    def set_layer_config(self,layer_config):
+        """
+        Set the layers according to the list-like object in layer_config.
+        Must have one entry per layer that can be interpreted as bool.
+        False means that layer is off, True means that layer is on.
+        Returns a string representation of the layer config as 0s and 1s.
 
-        if os.path.isfile(output_file):
+        Examples:
+
+        layer_config = "0010" would turn on the third layer of four (counting
+        from the bottom of the stack)
+
+        layer_config = [1,1,1,1,1,1] would turn on all 6 layers of 6
+
+        """
+
+        # Sanity check
+        if len(self._layer_list) != len(layer_config):
+            err = "layer_config must have the same length as the number of layers\n"
+            raise ValueError(err)
+
+        # Convert to list of bool
+        processed_config = [bool(c) for c in list(layer_config)]
+
+        # Set layers according to config
+        for i in range(len(self._layer_list)):
+            self._toggle_layer(layer_id=self._layer_list[i],
+                               layer_on=processed_config[i])
+
+        # Create a string representation of the configuration
+        config_name = "".join(["{}".format(int(c)) for c in processed_config])
+
+        return config_name
+
+    def write_inkscape_svg(self,output_file,force=False):
+        """
+        Write the current svg to an inkscape svg file.  Will not overwrite
+        an existing file unless force == True.
+        """
+
+        if os.path.isfile(output_file) and not force:
             err = "output file ({}) already exists\n".format(output_file)
+            raise ValueError(err)
+
+        if output_file[-4:] != ".svg":
+            err = "output file must be an svg file\n".format(output_file)
             raise ValueError(err)
 
         f = open(output_file,"w")
         f.write(self._current_svg)
         f.close()
 
-
     def render(self,output_file,text_to_path=True):
         """
-        Render the current state of the svg string as a flat file.  Can
-        write to plain svg, pdf, or png.  Uses inkscape.
+        Render the current state of the svg string as an image file using
+        inkscape.
+
+        output_file: filename to write.  the type of file is inferred from the
+                     extension on the file.  Can be .svg, .png, or .pdf.  An
+                     svg file will be a "plain" svg rather than an inkscape
+                     svg.
+        text_to_path: whether to convert text in svg to paths
         """
 
+        # Figure out what kind of file we want to write
         extension = output_file[-3:]
 
-        # Parse the output flag
+        # Map output type to inkscape flag
         output_flags = {"svg":"--export-plain-svg={}",
                         "pdf":"--export-pdf={}",
                         "png":"--export-png={}"}
@@ -224,15 +232,16 @@ class InkscapeSVG:
             for k in output_flags.keys():
                 err += "    {}\n".format(k)
 
+        # Don't overwrite a file if it already exists
         if os.path.isfile(output_file):
             err = "output file ({}) already exists\n".format(output_file)
-            raise ValueError(err)
+            raise IOError(err)
 
-        # Write out the svg file to a temporary file
+        # Write out the inkscape svg file to a temporary file
         rand_id = "".join([random.choice(string.ascii_letters)
                            for i in range(10)])
         tmp_file = "{}.svg".format(rand_id)
-        self._write_file(tmp_file)
+        self.write_inkscape_svg(tmp_file)
 
         # Construct an inkscape command that renders the svg to the output
         # file
@@ -249,43 +258,86 @@ class InkscapeSVG:
             err = "Unknown error. No file written out.\n"
             raise IOError(err)
 
+        # Clean up
         os.remove(tmp_file)
 
-    def write(self,output_file):
+    def render_layers(self,output_root,
+                      format="png",
+                      text_to_path=True,
+                      layer_configs=None):
         """
-        Write the current svg to an inkscape svg file.
+        Render the layers in the specified output format. Returns a list of the
+        rendered files.
+
+        output_root: root for output file name
+        format: svg, png, pdf
+        text_to_path: whether to render text as paths in final render
+        layer_configs: list of layer configurations to render.  If None,
+                       render will go like 100, 110, 111 ... meaning that the
+                       each render will have one more layer turned on.
+
         """
 
-        self._write_file(output_file)
-
-    def render_stack(self,output_root,format="svg",text_to_path=True):
-        """
-        Render the stack of layers. Returns a list of the rendered files.
-        """
-
+        # Save backup of current state -- will return to this after
+        # writing out
         current_state = copy.deepcopy(self._current_svg)
 
-        # Start by turning all layers off
-        for layer_id in self._include_in_stack:
-            self._toggle_layer(layer_id,layer_on=False)
+        if layer_configs is None:
 
+            # Construct a default set of layer configurations going like:
+            #   100, 110, 111
+            # This starts with layer one, then layer one+two, then layer
+            # one+two+three
+
+            layer_configs = []
+
+            config = [False for s in self._layer_list]
+            for i in range(len(self._layer_list)):
+                config[i] = True
+
+                layer_configs.append(copy.deepcopy(config))
+
+        else:
+
+            # sanity checks on user-generated configs
+
+            try:
+                len(layer_configs)
+            except TypeError:
+                err = "layer_configs must be a list-like object\n"
+                raise ValueError(err)
+
+            if len(layer_configs) == 0:
+                err = "layer_configs must have at least one configuration\n"
+                raise ValueError(err)
+
+
+
+        # Go through each layer configuration
         rendered = []
-        for layer_id in self._include_in_stack:
-            self._toggle_layer(layer_id,layer_on=True)
-            out_name = "{}_{}.{}".format(output_root,layer_id,format)
+        for config in layer_configs:
+
+            # Set the layer state
+            config_name = self.set_layer_config(config)
+
+            # Render output
+            out_name = "{}_{}.{}".format(output_root,config_name,format)
             self.render(out_name,text_to_path)
 
+            # Record that we rendered this layer
             rendered.append(out_name)
 
+        # Restore to pristine state
         self._current_svg = copy.deepcopy(current_state)
 
-        return rendered
+        # Return list of rendered files
 
+        return rendered
 
     @property
     def svg(self):
         """
-        svg text file.
+        svg as text.
         """
 
         return self._current_svg
@@ -293,7 +345,7 @@ class InkscapeSVG:
     @property
     def layers(self):
         """
-        list of layers to render.
+        List of layers to render.
         """
 
         return self._layer_list
@@ -308,10 +360,8 @@ def main(argv=None):
                         help='Inkscape svg file with layers to write out')
     parser.add_argument('--root', type=str,default=None,
                         help='root for output files [default is svg_file]')
-    parser.add_argument("--type",type=str,default="svg",
+    parser.add_argument("--type",type=str,default="png",
                         help="type of output (svg,png,pdf)")
-    parser.add_argument("--layers",type=str,default=None,
-                        help="file with list of layers to include")
 
     args = parser.parse_args(argv)
     svg_file = args.svg_file[0]
@@ -322,18 +372,8 @@ def main(argv=None):
 
     out_type = args.type
 
-    layer_list = None
-    if args.layers is not None:
-
-        f = open(args.layers,'r')
-        lines = f.readlines()
-        f.close()
-
-        layer_list = [l.strip() for l in lines
-                      if l.strip() != "" and not l.startswith("#")]
-
-    s = InkscapeSVG(svg_file,layer_list=layer_list)
-    s.render_stack(output_root,format=out_type)
+    s = InkscapeSVG(svg_file)
+    s.render_layers(output_root,format=out_type)
 
 if __name__ == "__main__":
     main()
