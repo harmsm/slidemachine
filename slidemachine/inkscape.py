@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 __description__ = \
 """
-Render the layers in an Inkscape-generated svg file into a collection of
-images.
+Class for manipulating and rendering the layers in an Inkscape-generated svg
+file.
 """
 __author__ = "Michael J. Harms"
 __date__ = "2018-05-09"
 
-import sys, os, re, subprocess, copy, random, string, argparse
+import sys, os, re, subprocess, copy, random, string
 from xml.dom import minidom
 
-class InkscapeSVG:
+class Inkscape:
     """
     Class that holds an inkscape svg file and allows manipulation of layers.
     """
