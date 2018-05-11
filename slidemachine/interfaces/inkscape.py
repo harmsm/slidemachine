@@ -246,6 +246,7 @@ class Inkscape:
         # Construct an inkscape command that renders the svg to the output
         # file
         cmd = ["inkscape","-z","--file={}".format(tmp_file)]
+        cmd.append("--export-area-page")
         if text_to_path:
             cmd.append("--export-text-to-path")
         cmd.append(output_flag.format(output_file))
