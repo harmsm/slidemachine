@@ -1,9 +1,13 @@
 __description__ = \
 """
+Code for parsing slidemachine-style markdown and then generating images from
+the inkscape files.
 """
 __author__ = "Michael J. Harms"
 __date__ = "2018-05-09"
 __usage__ = ""
+
+from . import interfaces
 
 import mistune
 import sys, re, copy, os, random, string, shutil, hashlib
@@ -37,9 +41,16 @@ def _split_string(s, delim, escape='\\'):
 
 class SlideMachine:
     """
+    Main class that parses markdown, constructs images, and generates final
+    html.
     """
 
-    def __init__(self,md_file,img_dir="slidemachine",slide_break=">>>"):
+    def __init__(self,md_file,img_dir="slidemachine.data",slide_break=">>>"):
+        """
+        md_file: markdown file
+        img_dir: directory to write out images (must not yet exist)
+        slide_break: pattern to recognize for breaking up slides.
+        """
 
         self._md_file = md_file
         self._img_dir = img_dir
@@ -241,7 +252,7 @@ class SlideMachine:
                     out_root = os.path.split(svg_file)[1][:-4]
                     out_root = os.path.join(tmp_dir,out_root)
 
-                    ink = inkscape.Inkscape(svg_file)
+                    ink = interfaces.Inkscape(svg_file)
                     renders = ink.render_layers(out_root,
                                                 format=img_format,
                                                 layer_configs=layer_configs)
@@ -285,12 +296,26 @@ class SlideMachine:
         self._slides = copy.deepcopy(new_slides)
         self._transitions = copy.deepcopy(new_transitions)
 
-    def process(self,img_format="png"):
+    def process(self,output_file,img_format="png",reveal_html_file=None):
         """
+        Generate html and images from markdown file.  Write out images to
+        self._img_dir
+
+        output_file: html file to write results
+        img_format: format for images written out by inkscape (png,pdf,svg)
+        reveal_html_file: html file with a class="slides" element that the
+                          slides will be pasted in to.
         """
+
+        # Make sure the output file does not already exist
+        if os.path.isfile(output_file):
+            err = "{} already exists.\n".format(output_file)
+            raise IOError(err)
 
         # Try to make output directory. Will fail if it already exists
         os.mkdir(self._img_dir)
+
+        # start processing
 
         # Read markdown file
         self._read_md_file()
@@ -319,7 +344,18 @@ class SlideMachine:
 
         self._html = "".join(out)
 
-        return self._html
+        # If a reveal html file is given, merge the new slides output
+        # with that.
+        if reveal_html_file is not None:
+            rev = interfaces.Reveal(reveal_html_file)
+
+            self._html = rev.merge(self._html)
+
+        # Write out output
+        f = open(output_file,'w')
+        f.write(self._html)
+        f.close()
+
 
     @property
     def markdown(self):
