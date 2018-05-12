@@ -3,19 +3,18 @@
 
 >>>
 
-Red to red + blue
+Start gold, add blue on top
 ![sm.inkscape](example.svg)
 
 >>>>
 
-red to blue
+Replace gold with blue
 ![sm.inkscape](example.svg) 10,01
 
 >>>>
 
 a normal image
-
-![sm.image](example.png) height="50%" width="50%"
+![sm.image](../graphics/slidemachine_blue.png) height="50%" width="50%"
 
 >>>>
 
