@@ -5,8 +5,8 @@
         <meta charset="utf-8">
 
         <!-- CUSTOMIZE METADATA HERE -->
-        <title>Presentation</title>
-        <meta name="description" content="An html slideshow">
+        <title>slidemachine demonstration</title>
+        <meta name="description" content="template file that can be populated by slidemachine">
         <meta name="author" content="Michael J. Harms">
 
 
@@ -33,6 +33,15 @@
 
         <!-- Add boostrap css (not included in reveal.js)-->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+        <!-- some stylesheet clean up -->
+        <style>
+            .reveal section img {
+              margin: 15px 0px;
+              background: rgba(255, 255, 255, 0.0);
+              border: 0px solid #222;
+              box-shadow: 0 0 0px rgba(0, 0, 0, 0.0); }
+        </style>
 
     </head>
 
@@ -64,8 +73,7 @@
 
                 // Add math
                 math: {
-                    mathjax: 'MathJax/MathJax.js', //https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js',
-                    config: 'TeX-AMS_HTML-full'  // See http://docs.mathjax.org/en/latest/config-files.html
+                    mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML',
                 },
 
                 // Optional reveal.js plugins

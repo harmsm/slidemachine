@@ -3,6 +3,10 @@
 Easily creates complicated graphical builds in reveal.js by generating slides
 directly from vector graphics files.  
 
+### stuff
+[Install reveal.js](https://github.com/hakimel/reveal.js/#installation)
+
+
 ###Intro
 [reveal.js](https://revealjs.com/) is a powerful javascript-based presentation
 framework. It renders content in a browser, making it great for displaying
