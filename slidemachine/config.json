@@ -5,9 +5,9 @@
             "target_dir":"slidemachine_media",
             "img_format":"png",
             "text_to_path":true,
-            "search_key":"![sm.inkscape]"},
+            "pattern":"![sm.inkscape]"},
         "ImageProcessor":{
             "target_dir":"slidemachine_media",
-            "search_key":"![sm.image]"}
+            "pattern":"![sm.image]"}
      }
-} 
+}

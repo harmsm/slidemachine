@@ -6,3 +6,4 @@ __author__ = "Michael J. Harms"
 __date__ = "2018-05-10"
 
 from .inkscape import InkscapeProcessor
+from .image import ImageProcessor

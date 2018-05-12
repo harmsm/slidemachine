@@ -175,15 +175,16 @@ class SlideMachine:
         # to use
         self._processors = []
         try:
-            processors = json_input["processors"]
+
+            avail_processors = json_input["processors"]
 
             # In the processors dict, keys should be names of processor
             # classes, values should be dict of keywords to pass when
             # initializing the processor
-            for k in processors.keys():
+            for k in avail_processors.keys():
 
                 # Initialize an instance of the class
-                p = getattr(processors,k)(**processors[k])
+                p = getattr(processors,k)(**avail_processors[k])
 
                 # If a target dir is specified on the command line, override
                 # what's in the json

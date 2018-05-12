@@ -27,6 +27,7 @@ setup(name="slidemachine",
       install_requires=["mistune"],
       zip_safe=False,
       classifiers=['Programming Language :: Python'],
+      package_data={"":["*.json"]},
       entry_points = {
             'console_scripts': [
                   'slidemachine = slidemachine.console.slidemachine:main',
