@@ -7,6 +7,8 @@ file.
 __author__ = "Michael J. Harms"
 __date__ = "2018-05-09"
 
+from .base import Processor
+
 import sys, os, re, subprocess, copy, random, string
 from xml.dom import minidom
 
