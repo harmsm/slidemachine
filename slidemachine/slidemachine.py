@@ -139,7 +139,7 @@ class SlideMachine:
     html.
     """
 
-    def __init__(self,md_file,json_file=None):
+    def __init__(self,md_file,json_file=None,target_dir=None):
         """
         md_file: markdown file to be processed
         json_file: json file with configuration information.  If None, a
@@ -148,6 +148,8 @@ class SlideMachine:
 
         self._md_file = md_file
         self._json_file = json_file
+        self._target_dir = target_dir
+
         self._slide_break = ">>>"
 
         self._load_json()
@@ -182,6 +184,13 @@ class SlideMachine:
 
                 # Initialize an instance of the class
                 p = getattr(processors,k)(**processors[k])
+
+                # If a target dir is specified on the command line, override
+                # what's in the json
+                if self._target_dir is not None:
+                    p.target_dir = self._target_dir
+
+                # append the processor to the processor
                 self._proccessors.append(p)
 
             # Remove the special processors key from the

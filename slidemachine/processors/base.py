@@ -38,6 +38,8 @@ class Processor:
        If it expands the line into multiple new lines (for example, an inkscape
        processor that renders a single file into multiple images, each on their
        own slide), it should return a **tuple** of new lines.
+
+    2. taget_dir setter
     """
 
     def __init__(self,target_dir):
