@@ -23,9 +23,13 @@ red to blue
 >>>>
 
 normal
+
 *italic*
+
 **bold**
+
 **__bold and italic__**
+
 ~~strike through~~
 
 >>>>
@@ -72,10 +76,10 @@ some bootstrap
 
 <div class="row">
     <div class="col-xs-6">
-        <img src="models_0.png" class="img-responsive" height="50%" width="50%"/>
+        <img src="https://en.wikipedia.org/wiki/Portable_Network_Graphics#/media/File:PNG_transparency_demonstration_1.png" class="img-responsive" height="50%" width="50%"/>
     </div>
     <div class="col-xs-6">
-        <img src="models_0.png" class="img-responsive" height="50%" width="50%"/>
+        <img src="https://en.wikipedia.org/wiki/Portable_Network_Graphics#/media/File:PNG_transparency_demonstration_1.png" class="img-responsive" height="50%" width="50%"/>
     </div>
 </div>
 

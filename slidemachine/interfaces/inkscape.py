@@ -10,7 +10,7 @@ __date__ = "2018-05-09"
 import sys, os, re, subprocess, copy, random, string
 from xml.dom import minidom
 
-class Inkscape:
+class InkscapeSVG:
     """
     Class that holds an inkscape svg file and allows manipulation of layers.
     """
@@ -285,18 +285,7 @@ class Inkscape:
 
         if layer_configs is None:
 
-            # Construct a default set of layer configurations going like:
-            #   100, 110, 111
-            # This starts with layer one, then layer one+two, then layer
-            # one+two+three
-
-            layer_configs = []
-
-            config = [False for s in self._layer_list]
-            for i in range(len(self._layer_list)):
-                config[i] = True
-
-                layer_configs.append(copy.deepcopy(config))
+            layer_configs = self.default_layer_render
 
         else:
 
@@ -365,3 +354,159 @@ class Inkscape:
         """
 
         return self._layer_list
+
+    @property
+    def default_layer_render(self):
+        """
+        Default set of layers to render.
+        """
+
+        # Construct a default set of layer configurations going like:
+        #   100, 110, 111
+        # This starts with layer one, then layer one+two, then layer
+        # one+two+three
+
+        layer_configs = []
+
+        config = [False for s in self._layer_list]
+        for i in range(len(self._layer_list)):
+            config[i] = True
+
+            layer_configs.append(copy.deepcopy(config))
+
+        return layer_configs
+
+
+class InkscapeProcessor(Processor):
+    """
+
+    """
+
+
+    def __init__(self,
+                 target_dir="slidemachine.data",
+                 img_format="png",
+                 text_to_path=True,
+                 pattern="!\[sm.inkscape\]"):
+
+        self._img_format = img_format
+        self._text_to_path = text_to_path
+        self._pattern = re.compile(pattern)
+
+        self._configs_rendered = []
+
+        super(InkscapeProcessor, self).__init__(target_dir)
+
+    def process(self,line):
+        """
+        Looks for lines like this:
+
+        ![sm.inkscape](inkscape_file)100,001,111
+
+        Renders each layer as an image, creating its own slide in the markdown.
+
+        The list of layer configurations on the right is optional. Those strings
+        specify the layer configurations to render.  The example above would
+        render bottom layer alone, the top layer alone, and then all three
+        layers together, in that order.  It would then create three slides,
+        one for each render.  The length of each 0/1 string must be the same as
+        the number of layers in the input inkscape file.  If no configurations
+        are specified, the renderer will build the layers sequentially from
+        bottom to top (i.e. 1000, 1100, 1110, 1111).
+        """
+
+        # If the line does not match, return the original line
+        if not self._pattern.match(line):
+            return line
+
+        svg_file, layer_configs = self._parse_markdown_line(line)
+
+        # Create inkscape object and figure out what layer configurations
+        # we are going to render
+        ink = InkscapeSVG(svg_file)
+        if layer_configs is None:
+            tmp_layer_configs = ink.default_layer_render
+
+            # Convert the bool lists from the InkscapeSVG object to
+            # strings.
+            layer_configs = []
+            for config in tmp_layer_configs:
+                layer_configs.append("".join([str(int(l)) for l in config]))
+
+        # Check to see if we have already rendered this svg/layer combo.
+        # The final_file_names list will have output file names for
+        # things that have already been rendered and None for things that
+        # have yet to be rendered. configs_to_render will have only
+        # configurationns that should be rendered.
+
+        final_file_names = []
+        configs_to_render = []
+        for config in layer_configs:
+
+            expected_render = (svg_file,config)
+            try:
+                output_file = self._configs_rendered[expected_render]
+                final_file_names.append(output_file)
+            except KeyError:
+                configs_to_render.append(config)
+                final_file_names.append(None)
+
+        # ------ Render everything in configs_to_render -----------
+
+        # Create temporary output directory
+        id = "".join([random.choice(string.ascii_letters)
+                      for i in range(10)])
+        tmp_dir = "tmp_{}".format(id)
+        os.mkdir(tmp_dir)
+
+        # Make temporary output file root
+        out_root = os.path.split(svg_file)[1][:-4]
+        out_root = os.path.join(tmp_dir,out_root)
+
+        # Do rendering
+        renders = ink.render_layers(out_root,
+                                    format=self._img_format,
+                                    layer_configs=configs_to_render)
+
+        # Now go through final_file_names.  Things that were rendered in
+        # the past will have an actual file name.  Things we just
+        # rendered will be None.  When we hit a None, grab the file from
+        # the renders list and use the _copy_file method to copy it into
+        # the final output directory.  Finally, update the markdown
+        # with the final file name.
+
+        final_markdown = []
+
+        new_render_counter = 0
+        for file in final_file_names:
+            if file is None:
+
+                # Get the file out of the new renders
+                new_file = renders[new_render_counter]
+
+                # Copy the file from wherever it is in the filesystem to
+                # the appropriate output directory
+                file = self._copy_file(new_file)
+
+                # Record that we rendered this file/config combo
+                key = (svg_file,configs_to_render[new_render_counter])
+                self._configs_rendered[key] = file
+
+                # Update index to new renders
+                new_render_counter += 1
+
+            # Update markdown with the file
+            final_markdown.append("![alt-text]({})\n".format(file))
+
+        # Nuke temporary files
+        shutil.rmtree(tmp_dir)
+
+        # If there is only one line to return, return as a string
+        if len(final_markdown) == 1:
+            to_return = final_markdown[0]
+
+        # If there is more than one line to return, return as tuple of str
+        else:
+            to_return = tuple(final_markdown)
+
+        return to_return

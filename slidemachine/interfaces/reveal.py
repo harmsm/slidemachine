@@ -76,10 +76,6 @@ class Reveal:
         the reveal.js html file.
         """
 
-        if os.path.isfile(output_file):
-            err = "{} already exists.\n".format(output_file)
-            raise IOError(err)
-
         # Add appropriate indentation
         html = slides_html.split("\n")
         html = "\n".join(["{}{}".format(self._indent,h) for h in html])
