@@ -10,16 +10,16 @@ from .base import Processor
 
 class ImageProcessor(Processor):
     """
-    Process an image file.
+    Process an image file. Looks for lines like this:
+
+    ![sm.image](image_file) html_formatting_options
+
+    and copies images into the target directory.
     """
 
     def process(self,line):
         """
-        Looks for lines like this:
-
-        ![sm.image](image_file) html_formatting_options
-
-        and copies images into the target directory.
+        Process an image line.
         """
 
         # If the line does not match, return the original line

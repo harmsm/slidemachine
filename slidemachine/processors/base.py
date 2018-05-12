@@ -1,5 +1,6 @@
 __description__ = \
 """
+Define base processor class.
 """
 __author__ = "Michael J. Harms"
 __date__ = "2018-05-10"
@@ -35,16 +36,14 @@ def _split_string(s, delim, escape='\\'):
 
 class Processor:
     """
-    1. Expose a process method that returns the processed line in markdown.  If
-       the process does not modify the line, it should return the original line.
-       If it expands the line into multiple new lines (for example, an inkscape
-       processor that renders a single file into multiple images, each on their
-       own slide), it should return a **tuple** of new lines.
-
-    2. taget_dir setter
+    Base class for all processor subclasses in slidemachine.
     """
 
     def __init__(self,target_dir,pattern="!\[sm.dummy\]"):
+        """
+        target_dir: place to store output files
+        pattern: markdown pattern that should invoke this processor
+        """
 
         self._target_dir = target_dir
         self._pattern = re.compile(pattern)
@@ -123,6 +122,9 @@ class Processor:
 
 
     def process(self,line):
+        """
+        Dummy method.  Overwritten in subclasses.
+        """
 
         return line
 

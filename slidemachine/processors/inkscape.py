@@ -381,7 +381,7 @@ class InkscapeSVG:
 
 class InkscapeProcessor(Processor):
     """
-
+    Process and inkscape SVG file, creating individual slides from layers.
     """
 
 
@@ -390,16 +390,12 @@ class InkscapeProcessor(Processor):
                  img_format="png",
                  text_to_path=True,
                  pattern="!\[sm.inkscape\]"):
-
-        self._img_format = img_format
-        self._text_to_path = text_to_path
-
-        self._configs_rendered = {}
-
-        super(InkscapeProcessor, self).__init__(target_dir,pattern)
-
-    def process(self,line):
         """
+        target_dir: directory in which to write out rendered files
+        img_format: image format (png, pdf, svg)
+        text_to_path: convert text in svg to path
+        pattern: pattern to use to look for inkscape lines in markdown
+
         Looks for lines like this:
 
         ![sm.inkscape](inkscape_file) 100,001,111
@@ -414,6 +410,19 @@ class InkscapeProcessor(Processor):
         the number of layers in the input inkscape file.  If no configurations
         are specified, the renderer will build the layers sequentially from
         bottom to top (i.e. 1000, 1100, 1110, 1111).
+        """
+
+        self._img_format = img_format
+        self._text_to_path = text_to_path
+
+        self._configs_rendered = {}
+
+        super(InkscapeProcessor, self).__init__(target_dir,pattern)
+
+    def process(self,line):
+        """
+        Process a line, either returning input line or new lines for rendered
+        svg.
         """
 
         # If the line does not match, return the original line

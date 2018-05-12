@@ -100,7 +100,7 @@ class Slide:
             self._override_transition = True
 
     @property
-    def original_markdown(self):
+    def markdown(self):
         return "".join(self._original_slide_lines)
 
 
@@ -377,47 +377,3 @@ class SlideMachine:
         """
 
         return self._html
-
-
-    def _process_image_lines(self):
-        """
-        Look for lines like this:
-
-        ![blah](img_file)
-
-        Process the image, copying it into img_dir.
-        """
-
-        img_pattern = re.compile("!\[")
-
-        new_slides = []
-        for slide in self._slides:
-
-            tmp_lines = []
-            for line in slide:
-
-                new_line = copy.deepcopy(line)
-                if img_pattern.search(line):
-
-                    # Split on "(" and ")" in markdown. Using _split_string
-                    # rather than the normal str.split in case we have someone
-                    # using \( in their filenames.
-                    tmp = _split_string(line,"(")[1]
-                    img_file = _split_string(tmp,")")[0]
-
-                    # If the image file is actually a file (rather than, say,
-                    # a url...)
-                    if os.path.isfile(img_file):
-
-                        # Process image (copy, etc.)
-                        new_file = self._process_image(img_file)
-
-                        # Update the markdown so it points to the image file
-                        # in the image directory
-                        new_line = re.sub(img_file,new_file,line)
-
-                tmp_lines.append(new_line)
-
-            new_slides.append(tmp_lines)
-
-        self._slides = copy.deepcopy(new_slides)
