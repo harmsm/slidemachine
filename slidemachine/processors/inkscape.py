@@ -9,7 +9,7 @@ __date__ = "2018-05-09"
 
 from .base import Processor
 
-import sys, os, re, subprocess, copy, random, string
+import sys, os, re, subprocess, copy, random, string, shutil
 from xml.dom import minidom
 
 class InkscapeSVG:
@@ -395,7 +395,7 @@ class InkscapeProcessor(Processor):
         self._text_to_path = text_to_path
         self._pattern = re.compile(pattern)
 
-        self._configs_rendered = []
+        self._configs_rendered = {}
 
         super(InkscapeProcessor, self).__init__(target_dir)
 

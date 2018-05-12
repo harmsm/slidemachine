@@ -9,7 +9,7 @@ __usage__ = ""
 from . import processors
 
 import mistune
-import sys, re, copy, os, json
+import sys, re, copy, os, json, shutil
 
 class SlideMachineError(Exception):
     """
@@ -129,7 +129,7 @@ class Slide:
 
             end = "</section>\n\n"
 
-            out.append("".join(start,middle,end))
+            out.append("{}{}{}".format(start,middle,end))
 
         return "".join(out)
 
@@ -139,22 +139,25 @@ class SlideMachine:
     html.
     """
 
-    def __init__(self,md_file,json_file=None,target_dir=None):
+    def __init__(self,md_file,json_file=None,target_dir=None,force=False):
         """
         md_file: markdown file to be processed
         json_file: json file with configuration information.  If None, a
                    default json file is used.
+        target_directory: if specified, single output directory for all media.
+                          overrides whatever is in json
+        force: overwrite existing files and target directories.
         """
 
         self._md_file = md_file
         self._json_file = json_file
         self._target_dir = target_dir
+        self._force = force
 
         self._slide_break = ">>>"
 
         self._load_json()
         self._read_md_file()
-
 
     def _load_json(self):
         """
@@ -192,12 +195,24 @@ class SlideMachine:
                     p.target_dir = self._target_dir
 
                 # append the processor to the processor
-                self._proccessors.append(p)
+                self._processors.append(p)
 
             # Remove the special processors key from the
             json_input.pop("processors")
         except KeyError:
             pass
+
+        # get list of output directories and create them
+        target_dirs = set([p.target_dir for p in self._processors])
+        for d in target_dirs:
+            if os.path.isdir(d):
+                if self._force:
+                    shutil.rmtree(d)
+                else:
+                    err = "\n\nTarget directory {} already exists.\n".format(d)
+                    err += "Use --force to overwrite.\n\n"
+                    raise IOError(err)
+            os.mkdir(d)
 
         # Remaining keys should set attributes of this class
         for key in json_input:
@@ -308,8 +323,12 @@ class SlideMachine:
 
         # Make sure the output file does not already exist
         if os.path.isfile(output_file):
-            err = "{} already exists.\n".format(output_file)
-            raise IOError(err)
+            if self._force:
+                shutil.remove(output_file)
+            else:
+                err = "\n\nOutput file {} exists.\n\n".format(output_file)
+                err += "Use --force to overwrite."
+                raise IOError(err)
 
         # Apply processors
         for processor in self._processors:

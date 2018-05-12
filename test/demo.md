@@ -4,12 +4,12 @@
 >>>
 
 Red to red + blue
-![inkscape](example.svg)
+![sm.inkscape](example.svg)
 
 >>>>
 
 red to blue
-![inkscape](example.svg) 10,01
+![sm.inkscape](example.svg) 10,01
 
 >>>>
 

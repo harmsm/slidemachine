@@ -4,6 +4,8 @@ __description__ = \
 __author__ = "Michael J. Harms"
 __date__ = "2018-05-10"
 
+import os, hashlib, shutil
+
 def _split_string(s, delim, escape='\\'):
     """
     Split a string on delim, properly accounting for escape. Not particularly
@@ -42,7 +44,7 @@ class Processor:
     2. taget_dir setter
     """
 
-    def __init__(self,target_dir):
+    def __init__(self,target_dir,pattern="!\[sm.dummy\]",force=False):
 
         self._target_dir = target_dir
 
@@ -51,7 +53,6 @@ class Processor:
         # minimize the number of files in the final output.  Only unique
         # files are copied into _target_dir
         self._file_seen_dict = {}
-
 
     def _copy_file(self,input_file):
         """
@@ -62,15 +63,6 @@ class Processor:
         avoid the conflict.  Return a string with the path of the final, copied
         file.
         """
-
-        # Make sure the output directory is real before parsing
-        try:
-            if not os.path.isdir(self._target_dir):
-                err = "output ({}) is not a directory\n".format(self._target_dir)
-                raise ValueError(err)
-        except AttributeError:
-            err = "output directory not specified.\n"
-            raise ValueError(err)
 
         # Determine the md5 hash of the input file
         hash_md5 = hashlib.md5()
@@ -87,13 +79,13 @@ class Processor:
         except KeyError:
 
             file_root = os.path.split(input_file)[1]
-            new_file = os.path.join(self._file_seen_dict,file_root)
+            new_file = os.path.join(self._target_dir,file_root)
 
             # name conflict, add counter until no conflict
             counter = 0
             while os.path.isfile(new_file):
                 new_root = "{:05d}_{:s}".format(counter,file_root)
-                new_file = os.path.join(self._img_dir,new_root)
+                new_file = os.path.join(self._target_dir,new_root)
                 counter += 1
 
             self._file_seen_dict[file_hash] = new_file
@@ -120,10 +112,18 @@ class Processor:
         if len(tmp2) > 1:
             if tmp2[1].strip() != "":
                 args = tmp2[1].split(",")
-                args = [a.strip() for a in a]
+                args = [a.strip() for a in args]
 
         return input_file, args
 
     def process(self,line):
 
         return line
+
+    @property
+    def target_dir(self):
+        return self._target_dir
+
+    @target_dir.setter
+    def target_dir(self,target_dir):
+        self._target_dir = target_dir

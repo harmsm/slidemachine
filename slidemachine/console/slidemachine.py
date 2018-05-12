@@ -27,15 +27,16 @@ def main(argv=None):
                         help="configuration file (json)")
     parser.add_argument("--target-dir",type=str,default=None,
                         help="directory to hold slidemachine media (overrides json)")
-
-
+    parser.add_argument("--force",action="store_true",
+                        help="delete old media directories and output files")
 
     args = parser.parse_args(argv)
     markdown_file = args.markdown_file[0]
 
     s = slidemachine.SlideMachine(markdown_file,
                                   target_dir=args.target_dir,
-                                  json_file=args.config)
+                                  json_file=args.config,
+                                  force=args.force)
 
     s.process(output_file=args.out,
               reveal_html_file=args.html)
