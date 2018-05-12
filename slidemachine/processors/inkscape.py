@@ -175,6 +175,10 @@ class InkscapeSVG:
             err = "layer_config must have the same length as the number of layers\n"
             raise ValueError(err)
 
+        # If user specified string like 100101, convert to int
+        if type(layer_config) is str:
+            layer_config = [int(c) for c in list(layer_config)]
+
         # Convert to list of bool
         processed_config = [bool(c) for c in list(layer_config)]
 
@@ -303,16 +307,6 @@ class InkscapeSVG:
                 err = "layer_configs must have at least one configuration\n"
                 raise ValueError(err)
 
-            # If user specified 100101, convert to boolean
-            tmp = []
-            for config in layer_configs:
-                if type(config) is str:
-                    tmp.append([bool(int(c)) for c in list(config)])
-                else:
-                    tmp.append(config)
-
-            layer_configs = copy.deepcopy(tmp)
-
         configs_seen = {}
 
         # Go through each layer configuration
@@ -382,8 +376,20 @@ class InkscapeSVG:
 class InkscapeProcessor(Processor):
     """
     Process and inkscape SVG file, creating individual slides from layers.
-    """
 
+    Looks for lines like this:
+
+    ![sm.inkscape](inkscape_file) 100,001,111
+
+    The list of layer configurations on the right is optional. Those strings
+    specify the layer configurations to render.  The example above would
+    render bottom layer alone, the top layer alone, and then all three
+    layers together, in that order.  It would then create three slides,
+    one for each render.  The length of each 0/1 string must be the same as
+    the number of layers in the input inkscape file.  If no configurations
+    are specified, the renderer will build the layers sequentially from
+    bottom to top (i.e. 1000, 1100, 1110, 1111).
+    """
 
     def __init__(self,
                  target_dir="slidemachine.data",
@@ -395,21 +401,6 @@ class InkscapeProcessor(Processor):
         img_format: image format (png, pdf, svg)
         text_to_path: convert text in svg to path
         pattern: pattern to use to look for inkscape lines in markdown
-
-        Looks for lines like this:
-
-        ![sm.inkscape](inkscape_file) 100,001,111
-
-        Renders each layer as an image, creating its own slide in the markdown.
-
-        The list of layer configurations on the right is optional. Those strings
-        specify the layer configurations to render.  The example above would
-        render bottom layer alone, the top layer alone, and then all three
-        layers together, in that order.  It would then create three slides,
-        one for each render.  The length of each 0/1 string must be the same as
-        the number of layers in the input inkscape file.  If no configurations
-        are specified, the renderer will build the layers sequentially from
-        bottom to top (i.e. 1000, 1100, 1110, 1111).
         """
 
         self._img_format = img_format
