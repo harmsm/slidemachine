@@ -1,6 +1,8 @@
 # slidemachine
 
-![logo](https://github.com/harmsm/slidemachine/blob/master/graphics/slidemachine_blue_small.png) Generate reveal.js slides directly from vector graphics files and markdown text 
+Generate reveal.js slides directly from vector graphics files and markdown text
+
+![logo](https://github.com/harmsm/slidemachine/blob/master/graphics/slidemachine_blue_small.png) 
 
 ### Intro
 [reveal.js](https://revealjs.com/) is a powerful javascript-based presentation
