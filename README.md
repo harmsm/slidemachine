@@ -1,9 +1,9 @@
-#slidemachine
+# slidemachine
 
 | --- | --- |
-| [logo](https://github.com/harmsm/slidemachine/blob/master/graphics/slidemachine_blue.png) | Generate reveal.js slides directly from vector graphics files and markdown text |
+| ![logo](https://github.com/harmsm/slidemachine/blob/master/graphics/slidemachine_blue.png) | Generate reveal.js slides directly from vector graphics files and markdown text |
 
-###Intro
+### Intro
 [reveal.js](https://revealjs.com/) is a powerful javascript-based presentation
 framework. It renders content in a browser, making it great for displaying
 web content, implementing interactive widgets, and for sharing presentations
@@ -20,7 +20,7 @@ builds as layers, and then describes how to do the render in simple markdown.
 conceivably write an entire presentation in markdown and render it
 with *slidemachine.*  
 
-###Quick start
+### Quick start
 
 0. If you haven't already, [Install reveal.js](https://github.com/hakimel/reveal.js/#installation)
    in a directory somewhere on your computer.
@@ -52,7 +52,7 @@ cd /some/folder/with/reveal/
 grunt serve
 ```
 
-###Details
+### Details
 
 *slidemachine* pre-processes markdown to break it into slides and create
 appropriate image files using Inkscape.  It then uses
@@ -84,7 +84,7 @@ This means:
    layer up: `100 -> 110 -> 111`.  (*Note*: the number of layers in each string
    must match the number of layers in the svg file).
 
-###Intriguing thoughts
+### Intriguing thoughts
 
  + The code is modular enough that we should be able to drop basically any
    programatically-generated material into *slidemachine*.  Ideas include
@@ -97,8 +97,7 @@ This means:
    and MD5 hash), meaning that sharing the talk requires only sharing that
    directory.  
 
-
-###Extending
+### Extending
 
 The markdown parsing is quite flexible, so *slidemachine* should be able to
 handle any number of processors.  (It currently has two: `InkscapeProcessor`,
