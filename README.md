@@ -2,6 +2,8 @@
 
 Generate reveal.js slides directly from vector graphics files and markdown text
 
+![slidemachine animated gif](https://github.com/harmsm/slidemachine/blob/master/graphics/slidemachine-demo.gif)
+
 ### Intro
 [reveal.js](https://revealjs.com/) is a powerful javascript-based presentation
 framework. It renders content in a browser, making it great for displaying
