@@ -393,17 +393,16 @@ class InkscapeProcessor(Processor):
 
         self._img_format = img_format
         self._text_to_path = text_to_path
-        self._pattern = re.compile(pattern)
 
         self._configs_rendered = {}
 
-        super(InkscapeProcessor, self).__init__(target_dir)
+        super(InkscapeProcessor, self).__init__(target_dir,pattern)
 
     def process(self,line):
         """
         Looks for lines like this:
 
-        ![sm.inkscape](inkscape_file)100,001,111
+        ![sm.inkscape](inkscape_file) 100,001,111
 
         Renders each layer as an image, creating its own slide in the markdown.
 
@@ -498,7 +497,7 @@ class InkscapeProcessor(Processor):
                 new_render_counter += 1
 
             # Update markdown with the file
-            final_markdown.append("![alt-text]({})\n".format(file))
+            final_markdown.append("![an image]({})\n".format(file))
 
         # Nuke temporary files
         shutil.rmtree(tmp_dir)

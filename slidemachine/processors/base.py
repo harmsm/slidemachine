@@ -4,7 +4,7 @@ __description__ = \
 __author__ = "Michael J. Harms"
 __date__ = "2018-05-10"
 
-import os, hashlib, shutil
+import os, hashlib, shutil, re
 
 def _split_string(s, delim, escape='\\'):
     """
@@ -44,9 +44,10 @@ class Processor:
     2. taget_dir setter
     """
 
-    def __init__(self,target_dir,pattern="!\[sm.dummy\]",force=False):
+    def __init__(self,target_dir,pattern="!\[sm.dummy\]"):
 
         self._target_dir = target_dir
+        self._pattern = re.compile(pattern)
 
         # Dictionary of every file seen during processing. key is the
         # md5 hash of the file; value is the filename.  This is used to
@@ -94,7 +95,7 @@ class Processor:
 
         return new_file
 
-    def _parse_markdown_line(self,line):
+    def _parse_markdown_line(self,line,delim=","):
         """
         Parse a slidemachine markdown line, returning the input file and the
         arguments passed.  If there are no arguments, return args = None.
@@ -111,8 +112,12 @@ class Processor:
         args = None
         if len(tmp2) > 1:
             if tmp2[1].strip() != "":
-                args = tmp2[1].split(",")
-                args = [a.strip() for a in args]
+
+                if delim is None:
+                    args = tmp2[1].strip()
+                else:
+                    args = tmp2[1].split(delim)
+                    args = [a.strip() for a in args]
 
         return input_file, args
 

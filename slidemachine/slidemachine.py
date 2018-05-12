@@ -124,10 +124,12 @@ class Slide:
                 start = "<section>\n"
 
             middle = markdown("".join(s))
+
             middle = middle.split("\n")
             middle = "".join(["  {:}\n".format(m) for m in middle])
+            middle = middle.rstrip()
 
-            end = "</section>\n\n"
+            end = "\n</section>\n\n"
 
             out.append("{}{}{}".format(start,middle,end))
 
@@ -269,7 +271,7 @@ class SlideMachine:
         filling_top = True
         top = []
         bottom = []
-        with open(self._reveal_html_file,"r") as lines:
+        with open(reveal_file,"r") as lines:
             for l in lines:
 
                 if filling_top:
@@ -280,19 +282,24 @@ class SlideMachine:
                         end_of_tag = re.search(">",l[attrib_end:]).end()
 
                         break_index = attrib_end + end_of_tag + 1
-                        with_top = l[:break_index]
+                        with_top = l[:(break_index-1)]
 
                         try:
-                            with_bottom = l[(break_index + 1):]
+                            with_bottom = l[(break_index-1):]
                         except IndexError:
                             with_bottom = ""
 
+                        indent = (len(l) - len(l.lstrip()) + 2)*" "
+
                         top.append(with_top)
+                        top.append("\n\n")
+
                         bottom.append("\n")
+                        bottom.append((len(l) - len(l.strip()))*" ")
                         bottom.append(with_bottom)
+
                         filling_top = False
 
-                        indent = (len(l) - len(l.lstrip()) + 2)*" "
 
                         continue
                     else:
@@ -324,7 +331,7 @@ class SlideMachine:
         # Make sure the output file does not already exist
         if os.path.isfile(output_file):
             if self._force:
-                shutil.remove(output_file)
+                os.remove(output_file)
             else:
                 err = "\n\nOutput file {} exists.\n\n".format(output_file)
                 err += "Use --force to overwrite."

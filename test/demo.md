@@ -13,6 +13,12 @@ red to blue
 
 >>>>
 
+a normal image
+
+![sm.image](example.png) height="50%" width="50%"
+
+>>>>
+
 # header1
 ## header2
 ### header3
@@ -52,12 +58,6 @@ Horizontal rule
 
 >>>>
 
-a normal image
-
-![img](example.png)
-
->>>>
-
 The next slide is blank
 
 >>>>
@@ -88,7 +88,9 @@ some bootstrap
 python code block
 
 ```python
-import slidemachine
-print(10)
-```
 
+import slidemachine
+
+print(10)
+
+```
