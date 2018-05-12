@@ -19,7 +19,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="generate reveal.js html from a markdown file with generator tags")
     parser.add_argument('markdown_file', type=str, nargs=1,
                         help='markdown file to process')
-    parser.add_argument('--html', type=str,default=None,
+    parser.add_argument('--template', type=str,default=None,
                         help='reveal html file in which to insert slides')
     parser.add_argument("--out",type=str,default="index.html",
                         help="html file to write output")
@@ -39,7 +39,7 @@ def main(argv=None):
                                   force=args.force)
 
     s.process(output_file=args.out,
-              reveal_html_file=args.html)
+              reveal_html_file=args.template)
 
 
 if __name__ == "__main__":
