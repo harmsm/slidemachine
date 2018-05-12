@@ -75,10 +75,10 @@ some bootstrap
 
 <div class="row">
     <div class="col-xs-6">
-        <img src="https://en.wikipedia.org/wiki/Portable_Network_Graphics#/media/File:PNG_transparency_demonstration_1.png" class="img-responsive" height="50%" width="50%"/>
+        <img src="https://github.com/harmsm/slidemachine/blob/master/graphics/slidemachine_blue.png" class="img-responsive" height="50%" width="50%"/>
     </div>
     <div class="col-xs-6">
-        <img src="https://en.wikipedia.org/wiki/Portable_Network_Graphics#/media/File:PNG_transparency_demonstration_1.png" class="img-responsive" height="50%" width="50%"/>
+        <img src="https://github.com/harmsm/slidemachine/blob/master/graphics/slidemachine_violet.png" class="img-responsive" height="50%" width="50%"/>
     </div>
 </div>
 
