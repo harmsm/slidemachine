@@ -4,12 +4,12 @@
 >>>
 
 Start gold, add blue on top
-![sm.inkscape](example.svg)
+![sm.inkscape](demo.svg)
 
 >>>>
 
 Replace gold with blue
-![sm.inkscape](example.svg) 10,01
+![sm.inkscape](demo.svg) 10,01
 
 >>>>
 
@@ -71,16 +71,8 @@ $$\frac{1}{4} = 0.25^{1}$$
 
 >>>>
 
-some bootstrap
-
-<div class="row">
-    <div class="col-xs-6">
-        <img src="https://github.com/harmsm/slidemachine/blob/master/graphics/slidemachine_blue.png" class="img-responsive" height="50%" width="50%"/>
-    </div>
-    <div class="col-xs-6">
-        <img src="https://github.com/harmsm/slidemachine/blob/master/graphics/slidemachine_violet.png" class="img-responsive" height="50%" width="50%"/>
-    </div>
-</div>
+<h4>some html</h4>
+<img src="https://github.com/harmsm/slidemachine/blob/master/graphics/slidemachine_blue.png" height="50%" width="50%"/>
 
 >>>>
 
