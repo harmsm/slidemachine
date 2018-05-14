@@ -72,7 +72,7 @@ $$\frac{1}{4} = 0.25^{1}$$
 >>>>
 
 <h4>some html</h4>
-<img src="https://github.com/harmsm/slidemachine/blob/master/graphics/slidemachine_blue.png" height="50%" width="50%"/>
+<img src="https://raw.githubusercontent.com/harmsm/slidemachine/master/graphics/slidemachine_blue.png" height="50%" width="50%"/>
 
 >>>>
 
