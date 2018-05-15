@@ -101,7 +101,7 @@ class Slide:
 
     @property
     def markdown(self):
-        return "".join(self._original_slide_lines)
+        return "".join(self._slide_lines)
 
 
     @property
@@ -119,7 +119,10 @@ class Slide:
         for i, s in enumerate(self._sub_slides):
 
             if self._override_transition:
-                start = "<section data-transition=\"none\">\n"
+                if i == 0:
+                    start = "<section data-transition=\"slide-in none-out\">"
+                else:
+                    start = "<section data-transition=\"none\">\n"
             else:
                 start = "<section>\n"
 
@@ -338,8 +341,10 @@ class SlideMachine:
                 raise IOError(err)
 
         # Apply processors
-        for processor in self._processors:
-            for slide in self._slides:
+        for i, slide in enumerate(self._slides):
+            print("Processing slide {} of {}\n".format(i+1,len(self._slides)))
+            print(slide.markdown)
+            for processor in self._processors:
                 slide.apply(processor)
 
         # Grab slide html
