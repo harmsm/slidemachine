@@ -162,6 +162,7 @@ class SlideMachine:
         self._slide_break = ">>>"
 
         self._load_json()
+        self._prep_target_dirs()
         self._read_md_file()
 
     def _load_json(self):
@@ -207,22 +208,57 @@ class SlideMachine:
         except KeyError:
             pass
 
-        # get list of output directories and create them
-        target_dirs = set([p.target_dir for p in self._processors])
-        for d in target_dirs:
-            if os.path.isdir(d):
-                if self._force:
-                    shutil.rmtree(d)
-                else:
-                    err = "\n\nTarget directory {} already exists.\n".format(d)
-                    err += "Use --force to overwrite.\n\n"
-                    raise IOError(err)
-            os.mkdir(d)
-
         # Remaining keys should set attributes of this class
         for key in json_input:
             new_key = "_{}".format(key)
             setattr(self,new_key,json_input[key])
+
+    def _prep_target_dirs(self):
+        """
+        Set up target directories.  Depending on user options, this will
+        either nuke and create target directories from scratch (--force) or
+        read whatever is in the existing target directories so the slidemachine
+        does not have to build the same stuff again.  If the target directory
+        does not exist already, this will make it.
+        """
+
+        self._prev_proc = []
+        self._existing_files = []
+
+        # Go through each processor
+        for p in self._processors:
+
+            # Key for looking up processor in prev-build.json
+            processor_name = getattr(type(p),"__name__")
+
+            # Either make the output directory, nuke the old version and remake
+            # or leave alone
+            if os.path.isdir(p.target_dir):
+                if self._force:
+                    shutil.rmtree(p.target_dir)
+                    os.mkdir(p.target_dir)
+            else:
+                os.mkdir(p.target_dir)
+
+            # Read a json file that indicates what has been done previously
+            try:
+                prev_build = os.path.join(p.target_dir,"prev-build.json")
+                prev_json = json.load(open(prev_build),'r')
+                prev_proc = prev_json[processor_name]
+
+                self._prev_proc[processor_name] copy.deepcopy(prev_json)
+
+            except (FileNotFoundError,KeyError):
+                pass
+
+            # Record all files in the directory
+            existing_files = [os.path.join(p.target_dir,f)
+                              for f in os.listdir(p.target_dir)]
+
+            self._existing_files.extend(existing_files)
+
+        # Dictionary of all files already present in output directory(s)
+        self._existing_files = dict([(f,None) for f in self._existing_files])
 
     def _read_md_file(self):
         """
