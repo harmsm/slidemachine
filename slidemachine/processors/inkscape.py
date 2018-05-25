@@ -464,10 +464,14 @@ class InkscapeProcessor(Processor):
         out_root = os.path.split(svg_file)[1][:-4]
         out_root = os.path.join(tmp_dir,out_root)
 
-        # Do rendering
-        renders = ink.render_layers(out_root,
-                                    format=self._img_format,
-                                    layer_configs=configs_to_render)
+        if len(configs_to_render) > 0:
+    
+            # Do rendering
+            renders = ink.render_layers(out_root,
+                                        format=self._img_format,
+                                        layer_configs=configs_to_render)
+        else:
+            renders = []
 
         # Now go through final_file_names.  Things that were rendered in
         # the past will have an actual file name.  Things we just
