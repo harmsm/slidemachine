@@ -407,6 +407,7 @@ class InkscapeProcessor(Processor):
         self._text_to_path = text_to_path
 
         self._configs_rendered = {}
+        self._prev_build_dict = {}
 
         super(InkscapeProcessor, self).__init__(target_dir,pattern)
 
@@ -415,6 +416,8 @@ class InkscapeProcessor(Processor):
         Process a line, either returning input line or new lines for rendered
         svg.
         """
+
+        this_processing = {}
 
         # If the line does not match, return the original line
         if not self._pattern.match(line):
@@ -434,7 +437,47 @@ class InkscapeProcessor(Processor):
             for config in tmp_layer_configs:
                 layer_configs.append("".join([str(int(l)) for l in config]))
 
-        # Check to see if we have already rendered this svg/layer combo.
+        # Get the md5 of the input file.  This will change if that file
+        # changed
+        input_file_md5 = self._get_file_md5(svg_file)
+
+        try:
+
+            prev_file_render = self._previous_build_dict[input_file_md5]
+
+            tmp_layer_configs = []
+            for config in layer_configs:
+                try:
+
+                    # Get file written out the last time this svg file was
+                    # rendered
+                    prev_output = prev_file_render[config]
+
+                    # If the file still exists, we don't need to render it,
+                    # so we should record it as already rendered
+                    if os.path.isfile(prev_output):
+                        this_processing[input_file_md5][config] = prev_output
+
+                    # If not, raise an error
+                    else:
+                        raise KeyError
+
+                # If we get a KeyError here, we need to render this config
+                except KeyError:
+                    tmp_layer_configs.append(config)
+
+            # the layer_configs to keep are whatever wasn't already rendered
+            # above.
+            layer_configs = copy.deepcopy(layer_configs)
+
+        # A KeyError here means that the input_file_md5 has never been seen --
+        # render all layers
+        except KeyError:
+            pass
+
+        # Check to see if we have already rendered this svg/layer combo during
+        # this session.
+        #
         # The final_file_names list will have output file names for
         # things that have already been rendered and None for things that
         # have yet to be rendered. configs_to_render will have only
@@ -442,6 +485,7 @@ class InkscapeProcessor(Processor):
 
         final_file_names = []
         configs_to_render = []
+
         for config in layer_configs:
 
             expected_render = (svg_file,config)
@@ -451,6 +495,9 @@ class InkscapeProcessor(Processor):
             except KeyError:
                 configs_to_render.append(config)
                 final_file_names.append(None)
+
+            # Record that this file was processed
+            this_processing[input_file_md5][config] = output_file
 
         # ------ Render everything in configs_to_render -----------
 
@@ -465,7 +512,7 @@ class InkscapeProcessor(Processor):
         out_root = os.path.join(tmp_dir,out_root)
 
         if len(configs_to_render) > 0:
-    
+
             # Do rendering
             renders = ink.render_layers(out_root,
                                         format=self._img_format,
@@ -505,6 +552,10 @@ class InkscapeProcessor(Processor):
 
         # Nuke temporary files
         shutil.rmtree(tmp_dir)
+
+        # 
+        for k in this_processing.keys():
+            self._this_proc_dict[k] = this_processing[k]
 
         # If there is only one line to return, return as a string
         if len(final_markdown) == 1:

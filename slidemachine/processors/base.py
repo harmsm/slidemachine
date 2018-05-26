@@ -54,6 +54,29 @@ class Processor:
         # files are copied into _target_dir
         self._file_seen_dict = {}
 
+        # Dictionary holding every file processed that will be written out
+        # as "target_dir/prev-build.json".  Keys will be md5 hashes of input
+        # files; values will depend on subclass.
+        self._this_proc_dict = {}
+
+        # List of output files associated with this processor
+        self._output_files = []
+
+        self._name = self.__class__.__name
+
+    def _get_file_md5(self,input_file):
+        """
+        Determine the md5 hash of the input file
+        """
+
+        hash_md5 = hashlib.md5()
+        with open(input_file, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_md5.update(chunk)
+        file_hash = hash_md5.hexdigest()
+
+        return file_hash
+
     def _copy_file(self,input_file):
         """
         Copies input_file into the target_dir, returning the new file name as a
@@ -64,12 +87,7 @@ class Processor:
         file.
         """
 
-        # Determine the md5 hash of the input file
-        hash_md5 = hashlib.md5()
-        with open(input_file, "rb") as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                hash_md5.update(chunk)
-        file_hash = hash_md5.hexdigest()
+        file_hash = self._get_file_md5(input_file)
 
         # see if this file has been seen before
         try:
@@ -91,6 +109,8 @@ class Processor:
             self._file_seen_dict[file_hash] = new_file
 
             shutil.copy(input_file,new_file)
+
+            self._output_files.append(new_file)
 
         return new_file
 
@@ -120,6 +140,35 @@ class Processor:
 
         return input_file, args
 
+    def add_previous_build_information(self,prev_build_dict):
+        """
+        Load a dictionary of previous build information.
+        """
+
+        self._prev_build_dict = copy.deepcopy(prev_build_dict)
+
+    def write_build_json(self):
+        """
+        Write build information from this run to prev-build.json.
+        """
+
+        # Json output file
+        json_file = os.path.join(self._target_dir,"prev-build.json")
+
+        # Get current json content
+        try:
+            current_json_contents = json.load(json_file)
+        except FileNotFoundError:
+            current_json_contents = {}
+
+        # Add this processor to the content
+        current_json_contents[self.name] = copy.deepcopy(self._this_proc_dict)
+
+        # Write out
+        f = open(json_file,'w')
+        json.dump(current_json_content,f)
+        f.close()
+
 
     def process(self,line):
         """
@@ -135,3 +184,11 @@ class Processor:
     @target_dir.setter
     def target_dir(self,target_dir):
         self._target_dir = target_dir
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def output_files(self):
+        return self._output_files
