@@ -5,7 +5,7 @@ Define base processor class.
 __author__ = "Michael J. Harms"
 __date__ = "2018-05-10"
 
-import os, hashlib, shutil, re
+import os, hashlib, shutil, re, json, copy
 
 def _split_string(s, delim, escape='\\'):
     """
@@ -62,7 +62,8 @@ class Processor:
         # List of output files associated with this processor
         self._output_files = []
 
-        self._name = self.__class__.__name
+        self._name = self.__class__.__name__
+        self._prev_build_dict = {}
 
     def _get_file_md5(self,input_file):
         """
@@ -157,7 +158,7 @@ class Processor:
 
         # Get current json content
         try:
-            current_json_contents = json.load(json_file)
+            current_json_contents = json.load(open(json_file,'r'))
         except FileNotFoundError:
             current_json_contents = {}
 
@@ -166,7 +167,7 @@ class Processor:
 
         # Write out
         f = open(json_file,'w')
-        json.dump(current_json_content,f)
+        json.dump(current_json_contents,f)
         f.close()
 
 
