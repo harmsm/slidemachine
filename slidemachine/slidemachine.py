@@ -246,8 +246,7 @@ class SlideMachine:
 
             # Read a json file that indicates what has been done previously
             try:
-                prev_build = os.path.join(p.target_dir,"prev-build.json")
-                prev_json = json.load(open(prev_build,'r'))
+                prev_json = json.load(open(p.prev_build_json,'r'))
                 prev_proc = prev_json[processor_name]
 
                 p.add_previous_build_information(prev_proc)
@@ -262,7 +261,7 @@ class SlideMachine:
             # Make sure this does not have prev-build.json.  (If it did, we
             # would delete it later as a leftover file)
             try:
-                existing_files.remove(os.path.join(p.target_dir,"prev-build.json"))
+                existing_files.remove(p.prev_build_json)
             except ValueError:
                 pass
 
@@ -274,8 +273,7 @@ class SlideMachine:
         # Remove any previous build information
         for p in self._processors:
             try:
-                prev_build = os.path.join(p.target_dir,"prev-build.json")
-                os.remove(prev_build)
+                os.remove(p.prev_build_json)
             except FileNotFoundError:
                 pass
 

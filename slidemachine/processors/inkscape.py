@@ -395,12 +395,14 @@ class InkscapeProcessor(Processor):
                  target_dir="slidemachine.data",
                  img_format="png",
                  text_to_path=True,
-                 pattern="!\[sm.inkscape\]"):
+                 pattern="!\[sm.inkscape\]",
+                 prev_build_json="prev-build.json"):
         """
         target_dir: directory in which to write out rendered files
         img_format: image format (png, pdf, svg)
         text_to_path: convert text in svg to path
         pattern: pattern to use to look for inkscape lines in markdown
+        prev_build_json: file where previous build information is stored
         """
 
         self._img_format = img_format
@@ -408,7 +410,8 @@ class InkscapeProcessor(Processor):
 
         self._configs_rendered = {}
 
-        super(InkscapeProcessor, self).__init__(target_dir,pattern)
+        super(InkscapeProcessor, self).__init__(target_dir,pattern,
+                                                prev_build_json)
 
     def process(self,line):
         """

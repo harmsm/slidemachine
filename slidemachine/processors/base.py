@@ -39,7 +39,8 @@ class Processor:
     Base class for all processor subclasses in slidemachine.
     """
 
-    def __init__(self,target_dir,pattern="!\[sm.dummy\]"):
+    def __init__(self,target_dir,pattern="!\[sm.dummy\]",
+                 prev_build_json="prev-build.json"):
         """
         target_dir: place to store output files
         pattern: markdown pattern that should invoke this processor
@@ -47,6 +48,7 @@ class Processor:
 
         self._target_dir = target_dir
         self._pattern = re.compile(pattern)
+        self._prev_build_json = prev_build_json
 
         # Dictionary of every file seen during processing. key is the
         # md5 hash of the file; value is the filename.  This is used to
@@ -150,11 +152,11 @@ class Processor:
 
     def write_build_json(self):
         """
-        Write build information from this run to prev-build.json.
+        Write build information from this run to previous build json.
         """
 
         # Json output file
-        json_file = os.path.join(self._target_dir,"prev-build.json")
+        json_file = os.path.join(self._target_dir,self._prev_build_json)
 
         # Get current json content
         try:
@@ -193,3 +195,7 @@ class Processor:
     @property
     def output_files(self):
         return self._output_files
+
+    @property
+    def prev_build_json(self):
+        return os.path.join(self._target_dir,self._prev_build_json)
