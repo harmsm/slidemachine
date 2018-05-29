@@ -85,6 +85,13 @@ This means:
    layer up: `100 -> 110 -> 111`.  (*Note*: the number of layers in each string
    must match the number of layers in the svg file).
 
+### Warning
+
+The contents of the *slidemachine* output directory (`slidemachine_media` by
+default) should not be changed manually.  *slidemachine* deletes any files that
+it does not need for the current processing.  This means that any user-added
+files in this directory will be deleted.  
+
 ### Intriguing thoughts
 
  + The code is modular enough that we should be able to drop basically any

@@ -144,24 +144,29 @@ class SlideMachine:
     html.
     """
 
-    def __init__(self,md_file,json_file=None,target_dir=None,force=False):
+    def __init__(self,md_file,json_file=None,target_dir=None,force=False,
+                 wipe=False):
         """
         md_file: markdown file to be processed
         json_file: json file with configuration information.  If None, a
                    default json file is used.
         target_directory: if specified, single output directory for all media.
                           overrides whatever is in json
-        force: overwrite existing files and target directories.
+        force: overwrite existing html file
+        wipe: delete slidemachine output directories, such that all files must
+              be rewritten from scratch
         """
 
         self._md_file = md_file
         self._json_file = json_file
         self._target_dir = target_dir
         self._force = force
+        self._wipe = wipe
 
         self._slide_break = ">>>"
 
         self._load_json()
+        self._prep_target_dirs()
         self._read_md_file()
 
     def _load_json(self):
@@ -207,22 +212,70 @@ class SlideMachine:
         except KeyError:
             pass
 
-        # get list of output directories and create them
-        target_dirs = set([p.target_dir for p in self._processors])
-        for d in target_dirs:
-            if os.path.isdir(d):
-                if self._force:
-                    shutil.rmtree(d)
-                else:
-                    err = "\n\nTarget directory {} already exists.\n".format(d)
-                    err += "Use --force to overwrite.\n\n"
-                    raise IOError(err)
-            os.mkdir(d)
-
         # Remaining keys should set attributes of this class
         for key in json_input:
             new_key = "_{}".format(key)
             setattr(self,new_key,json_input[key])
+
+    def _prep_target_dirs(self):
+        """
+        Set up target directories.  Depending on user options, this will
+        either nuke and create target directories from scratch (--wipe) or
+        read whatever is in the existing target directories so the slidemachine
+        does not have to build the same stuff again.  If the target directory
+        does not exist already, this will make it.
+        """
+
+        self._prev_proc = []
+        self._existing_files = []
+
+        # Go through each processor
+        for p in self._processors:
+
+            # Key for looking up processor in prev-build.json
+            processor_name = p.name
+
+            # Either make the output directory, nuke the old version and remake
+            # or leave alone
+            if os.path.isdir(p.target_dir):
+                if self._wipe:
+                    shutil.rmtree(p.target_dir)
+                    os.mkdir(p.target_dir)
+            else:
+                os.mkdir(p.target_dir)
+
+            # Read a json file that indicates what has been done previously
+            try:
+                prev_json = json.load(open(p.prev_build_json,'r'))
+                prev_proc = prev_json[processor_name]
+
+                p.add_previous_build_information(prev_proc)
+
+            except (FileNotFoundError,KeyError):
+                pass
+
+            # Record all files in the directory
+            existing_files = [os.path.join(p.target_dir,f)
+                              for f in os.listdir(p.target_dir)]
+
+            # Make sure this does not have prev-build.json.  (If it did, we
+            # would delete it later as a leftover file)
+            try:
+                existing_files.remove(p.prev_build_json)
+            except ValueError:
+                pass
+
+            self._existing_files.extend(existing_files)
+
+        # Set of all files already present in output directory(s)
+        self._existing_files = set(self._existing_files)
+
+        # Remove any previous build information
+        for p in self._processors:
+            try:
+                os.remove(p.prev_build_json)
+            except FileNotFoundError:
+                pass
 
     def _read_md_file(self):
         """
@@ -303,7 +356,6 @@ class SlideMachine:
 
                         filling_top = False
 
-
                         continue
                     else:
                         top.append(l)
@@ -346,6 +398,24 @@ class SlideMachine:
             print(slide.markdown)
             for processor in self._processors:
                 slide.apply(processor)
+
+        # Write out a json file describing what we did
+        all_output_files = []
+        for p in self._processors:
+            p.write_build_json()
+            all_output_files.extend(p.output_files)
+
+        # Set of all output files written out by the processor (or that would
+        # have been written out if they hadn't been written out by a previous
+        # render)
+        all_output_files = set(all_output_files)
+
+        # Get list of files we saw in the initial directory that would
+        # not have been written out by slidemachine.  Delete them as they
+        # are leftover from the last render
+        leftover_files = self._existing_files.difference(all_output_files)
+        for f in leftover_files:
+            os.remove(f)
 
         # Grab slide html
         html = []

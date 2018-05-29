@@ -5,9 +5,11 @@
             "target_dir":"slidemachine_media",
             "img_format":"png",
             "text_to_path":true,
-            "pattern":"!\\[sm.inkscape\\]"},
+            "pattern":"!\\[sm.inkscape\\]",
+            "prev_build_json":"prev-build.json"},
         "ImageProcessor":{
             "target_dir":"slidemachine_media",
-            "pattern":"!\\[sm.image\\]"}
+            "pattern":"!\\[sm.image\\]",
+            "prev_build_json":"prev-build.json"}
      }
 }

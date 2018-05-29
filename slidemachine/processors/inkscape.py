@@ -395,12 +395,14 @@ class InkscapeProcessor(Processor):
                  target_dir="slidemachine.data",
                  img_format="png",
                  text_to_path=True,
-                 pattern="!\[sm.inkscape\]"):
+                 pattern="!\[sm.inkscape\]",
+                 prev_build_json="prev-build.json"):
         """
         target_dir: directory in which to write out rendered files
         img_format: image format (png, pdf, svg)
         text_to_path: convert text in svg to path
         pattern: pattern to use to look for inkscape lines in markdown
+        prev_build_json: file where previous build information is stored
         """
 
         self._img_format = img_format
@@ -408,13 +410,16 @@ class InkscapeProcessor(Processor):
 
         self._configs_rendered = {}
 
-        super(InkscapeProcessor, self).__init__(target_dir,pattern)
+        super(InkscapeProcessor, self).__init__(target_dir,pattern,
+                                                prev_build_json)
 
     def process(self,line):
         """
         Process a line, either returning input line or new lines for rendered
         svg.
         """
+
+        this_processing = {}
 
         # If the line does not match, return the original line
         if not self._pattern.match(line):
@@ -434,7 +439,52 @@ class InkscapeProcessor(Processor):
             for config in tmp_layer_configs:
                 layer_configs.append("".join([str(int(l)) for l in config]))
 
-        # Check to see if we have already rendered this svg/layer combo.
+        # Get the md5 of the input file.  This will change if that file
+        # changed
+        input_file_md5 = self._get_file_md5(svg_file)
+
+        already_rendered = {}
+        try:
+
+            prev_file_render = self._prev_build_dict[input_file_md5]
+
+            tmp_layer_configs = []
+            for config in layer_configs:
+                try:
+
+                    # Get file written out the last time this svg file was
+                    # rendered
+                    prev_output = prev_file_render[config]
+
+                    # If the file still exists, we don't need to render it,
+                    # so we should record it as already rendered
+                    if os.path.isfile(prev_output):
+
+                        try:
+                            this_processing[input_file_md5][config] = prev_output
+                        except KeyError:
+                            this_processing[input_file_md5] = {}
+                            this_processing[input_file_md5][config] = prev_output
+
+                        # record that we do not actually need to render
+                        already_rendered[config] = prev_output
+
+                    # If not, raise an error
+                    else:
+                        raise KeyError
+
+                # If we get a KeyError here, we need to render this config
+                except KeyError:
+                    pass
+
+        # A KeyError here means that the input_file_md5 has never been seen --
+        # render all layers
+        except KeyError:
+            pass
+
+        # Check to see if we have already rendered this svg/layer combo during
+        # this session.
+        #
         # The final_file_names list will have output file names for
         # things that have already been rendered and None for things that
         # have yet to be rendered. configs_to_render will have only
@@ -442,8 +492,19 @@ class InkscapeProcessor(Processor):
 
         final_file_names = []
         configs_to_render = []
+
         for config in layer_configs:
 
+            # If the file was rendered in a previous processing run, record
+            # take that file
+            try:
+                output_file = already_rendered[config]
+                final_file_names.append(output_file)
+                continue
+            except KeyError:
+                pass
+
+            # See if we already rendered this *this* session
             expected_render = (svg_file,config)
             try:
                 output_file = self._configs_rendered[expected_render]
@@ -465,7 +526,7 @@ class InkscapeProcessor(Processor):
         out_root = os.path.join(tmp_dir,out_root)
 
         if len(configs_to_render) > 0:
-    
+
             # Do rendering
             renders = ink.render_layers(out_root,
                                         format=self._img_format,
@@ -483,28 +544,45 @@ class InkscapeProcessor(Processor):
         final_markdown = []
 
         new_render_counter = 0
-        for file in final_file_names:
-            if file is None:
+        for i, out_file in enumerate(final_file_names):
+            if out_file is None:
 
                 # Get the file out of the new renders
                 new_file = renders[new_render_counter]
 
                 # Copy the file from wherever it is in the filesystem to
                 # the appropriate output directory
-                file = self._copy_file(new_file)
+                out_file = self._copy_file(new_file)
 
                 # Record that we rendered this file/config combo
                 key = (svg_file,configs_to_render[new_render_counter])
-                self._configs_rendered[key] = file
+                self._configs_rendered[key] = out_file
 
                 # Update index to new renders
                 new_render_counter += 1
 
+            else:
+                self._output_files.append(out_file)
+
             # Update markdown with the file
-            final_markdown.append("![an image]({})\n".format(file))
+            final_markdown.append("![an image]({})\n".format(out_file))
+
+            # Record that this file was processed
+            try:
+                this_processing[input_file_md5][layer_configs[i]] = out_file
+            except KeyError:
+                this_processing[input_file_md5] = {}
+                this_processing[input_file_md5][layer_configs[i]] = out_file
 
         # Nuke temporary files
         shutil.rmtree(tmp_dir)
+
+        # record whatever was processed in this_proc_dict so we can write
+        for k in this_processing.keys():
+            try:
+                self._this_proc_dict[k].update(this_processing[k])
+            except KeyError:
+                self._this_proc_dict[k] = copy.deepcopy(this_processing[k])
 
         # If there is only one line to return, return as a string
         if len(final_markdown) == 1:

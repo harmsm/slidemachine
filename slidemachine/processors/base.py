@@ -5,7 +5,7 @@ Define base processor class.
 __author__ = "Michael J. Harms"
 __date__ = "2018-05-10"
 
-import os, hashlib, shutil, re
+import os, hashlib, shutil, re, json, copy
 
 def _split_string(s, delim, escape='\\'):
     """
@@ -39,7 +39,8 @@ class Processor:
     Base class for all processor subclasses in slidemachine.
     """
 
-    def __init__(self,target_dir,pattern="!\[sm.dummy\]"):
+    def __init__(self,target_dir,pattern="!\[sm.dummy\]",
+                 prev_build_json="prev-build.json"):
         """
         target_dir: place to store output files
         pattern: markdown pattern that should invoke this processor
@@ -47,12 +48,37 @@ class Processor:
 
         self._target_dir = target_dir
         self._pattern = re.compile(pattern)
+        self._prev_build_json = prev_build_json
 
         # Dictionary of every file seen during processing. key is the
         # md5 hash of the file; value is the filename.  This is used to
         # minimize the number of files in the final output.  Only unique
         # files are copied into _target_dir
         self._file_seen_dict = {}
+
+        # Dictionary holding every file processed that will be written out
+        # as "target_dir/prev-build.json".  Keys will be md5 hashes of input
+        # files; values will depend on subclass.
+        self._this_proc_dict = {}
+
+        # List of output files associated with this processor
+        self._output_files = []
+
+        self._name = self.__class__.__name__
+        self._prev_build_dict = {}
+
+    def _get_file_md5(self,input_file):
+        """
+        Determine the md5 hash of the input file
+        """
+
+        hash_md5 = hashlib.md5()
+        with open(input_file, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_md5.update(chunk)
+        file_hash = hash_md5.hexdigest()
+
+        return file_hash
 
     def _copy_file(self,input_file):
         """
@@ -64,12 +90,7 @@ class Processor:
         file.
         """
 
-        # Determine the md5 hash of the input file
-        hash_md5 = hashlib.md5()
-        with open(input_file, "rb") as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                hash_md5.update(chunk)
-        file_hash = hash_md5.hexdigest()
+        file_hash = self._get_file_md5(input_file)
 
         # see if this file has been seen before
         try:
@@ -91,6 +112,8 @@ class Processor:
             self._file_seen_dict[file_hash] = new_file
 
             shutil.copy(input_file,new_file)
+
+            self._output_files.append(new_file)
 
         return new_file
 
@@ -120,6 +143,35 @@ class Processor:
 
         return input_file, args
 
+    def add_previous_build_information(self,prev_build_dict):
+        """
+        Load a dictionary of previous build information.
+        """
+
+        self._prev_build_dict = copy.deepcopy(prev_build_dict)
+
+    def write_build_json(self):
+        """
+        Write build information from this run to previous build json.
+        """
+
+        # Json output file
+        json_file = os.path.join(self._target_dir,self._prev_build_json)
+
+        # Get current json content
+        try:
+            current_json_contents = json.load(open(json_file,'r'))
+        except FileNotFoundError:
+            current_json_contents = {}
+
+        # Add this processor to the content
+        current_json_contents[self.name] = copy.deepcopy(self._this_proc_dict)
+
+        # Write out
+        f = open(json_file,'w')
+        json.dump(current_json_contents,f)
+        f.close()
+
 
     def process(self,line):
         """
@@ -135,3 +187,15 @@ class Processor:
     @target_dir.setter
     def target_dir(self,target_dir):
         self._target_dir = target_dir
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def output_files(self):
+        return self._output_files
+
+    @property
+    def prev_build_json(self):
+        return os.path.join(self._target_dir,self._prev_build_json)
