@@ -251,11 +251,14 @@ class InkscapeSVG:
 
         # Construct an inkscape command that renders the svg to the output
         # file
-        cmd = ["inkscape","-z","--file={}".format(tmp_file)]
+        inkscape_tmp_path = os.path.abspath(tmp_file)
+        inkscape_output_path = os.path.abspath(output_file)
+
+        cmd = ["inkscape","-z","--file={}".format(inkscape_tmp_path)]
         cmd.append("--export-area-page")
         if text_to_path:
             cmd.append("--export-text-to-path")
-        cmd.append(output_flag.format(output_file))
+        cmd.append(output_flag.format(inkscape_output_path))
 
         # Run the command
         result = subprocess.check_output(cmd)
