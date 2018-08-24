@@ -13,7 +13,6 @@ if sys.version_info[0] < 3:
     sys.exit('Sorry, Python < 3.x is not supported')
 
 from setuptools import setup, find_packages
-import numpy
 
 setup(name="slidemachine",
       packages=find_packages(),
