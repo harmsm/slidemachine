@@ -10,6 +10,10 @@
         "ImageProcessor":{
             "target_dir":"slidemachine_media",
             "pattern":"!\\[sm.image\\]",
+            "prev_build_json":"prev-build.json"},
+        "VideoProcessor":{
+            "target_dir":"slidemachine_media",
+            "pattern":"!\\[sm.video\\]",
             "prev_build_json":"prev-build.json"}
      }
 }

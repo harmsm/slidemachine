@@ -7,3 +7,4 @@ __date__ = "2018-05-10"
 
 from .inkscape import InkscapeProcessor
 from .image import ImageProcessor
+from .video import VideoProcessor

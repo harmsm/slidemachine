@@ -18,6 +18,11 @@ a normal image
 
 >>>>
 
+a video file
+![sm.video](../graphics/slidemachine-demo.mp4) data-autoplay loop
+
+>>>
+
 # header1
 ## header2
 ### header3
