@@ -50,8 +50,14 @@ This will generate `index.html` and a directory called `slidemachine_media`.
 ```
 cp -r index.html slidemachine_media /some/folder/with/reveal/
 cd /some/folder/with/reveal/
-grunt serve
+npm start
 ```
+
+In my normal work flow, I create a development directory where I put all of the
+inputs to *slidemachine*, and then put symbolic links to
+`developlment/index.html` and `development/slidemachine_media` in
+`/some/folder/with/reveal/`.  This means I can update slides and have them
+automatically pushed to a running reveal.js instance.
 
 ### Details
 
@@ -85,6 +91,21 @@ This means:
    layer up: `100 -> 110 -> 111`.  (*Note*: the number of layers in each string
    must match the number of layers in the svg file).
 
+### Processors
+
+*slidemachine* recognizes the following hijacked image syntax.
+
++ `sm.inkscape` handles layered inkscape svg files.  The arguments are used to
+  specify the order in which to build layers into slides.  Uses the
+  `InkscapeProcessor` class under the hood.
++ `sm.image` takes a generic image and copies it into the output directory.  
+   Arguments are passed as attributes to the `<img />` html element.  For example,
+   `height="60%"` would make the height of the image 60%.  Uses the
+   `ImageProcessor` class.
++ `sm.video` takes a video file and copies it into the output
+  directory.  Arguments are passed as attributes to the `<video>` html element.
+  For example, `loop` would set video to loop. Uses the `VideoProcessor` class.
+
 ### Warning
 
 The contents of the *slidemachine* output directory (`slidemachine_media` by
@@ -108,9 +129,9 @@ files in this directory will be deleted.
 ### Extending
 
 The markdown parsing is quite flexible, so *slidemachine* should be able to
-handle any number of processors.  (It currently has two: `InkscapeProcessor`,
-which handles layered inkscape svg files and `ImageProcessor` which takes a
-generic image and copies it into the output directory).
+handle any number of processors.  
+
+To create a new processor:
 
 1. Create a subclass of `Processor`.
 2. Redefine the `process` method in the subclass.  *slidemachine* expects this
