@@ -19,6 +19,14 @@ class InkscapeSVG:
 
     def __init__(self,svg_file):
 
+        cmd = ["inkscape","--version"]
+        result = subprocess.check_output(cmd)
+        
+        if result.split()[1].decode().startswith("1."):
+            self._use_new_cmd_line = True
+        else:
+            self._use_new_cmd_line = False 
+
         self._svg_file = svg_file
 
         # Read in the svg file
@@ -226,9 +234,14 @@ class InkscapeSVG:
         extension = output_file[-3:]
 
         # Map output type to inkscape flag
-        output_flags = {"svg":"--export-plain-svg={}",
-                        "pdf":"--export-pdf={}",
-                        "png":"--export-png={}"}
+        if self._use_new_cmd_line:
+            output_flags = {"svg":["--export-type=svg","--export-plain-svg"],
+                            "pdf":["--export-type=pdf"],
+                            "png":["--export-type=png"]}
+        else:
+            output_flags = {"svg":"--export-plain-svg={}",
+                            "pdf":"--export-pdf={}",
+                            "png":"--export-png={}"}
 
         try:
             output_flag = output_flags[extension]
@@ -246,7 +259,7 @@ class InkscapeSVG:
         # Write out the inkscape svg file to a temporary file
         rand_id = "".join([random.choice(string.ascii_letters)
                            for i in range(10)])
-        tmp_file = "{}.svg".format(rand_id)
+        tmp_file = "tmp_{}.svg".format(rand_id)
         self.write_inkscape_svg(tmp_file)
 
         # Construct an inkscape command that renders the svg to the output
@@ -254,11 +267,17 @@ class InkscapeSVG:
         inkscape_tmp_path = os.path.abspath(tmp_file)
         inkscape_output_path = os.path.abspath(output_file)
 
-        cmd = ["inkscape","-z","--file={}".format(inkscape_tmp_path)]
+        if self._use_new_cmd_line:
+            cmd = ["inkscape","-z","{}".format(inkscape_tmp_path)]
+            cmd.append("--export-file={}".format(inkscape_output_path))
+            cmd.extend(output_flag)
+        else:
+            cmd = ["inkscape","-z","--file={}".format(inkscape_tmp_path)]
+            cmd.append(output_flag.format(inkscape_output_path))
+
         cmd.append("--export-area-page")
         if text_to_path:
             cmd.append("--export-text-to-path")
-        cmd.append(output_flag.format(inkscape_output_path))
 
         # Run the command
         result = subprocess.check_output(cmd)
