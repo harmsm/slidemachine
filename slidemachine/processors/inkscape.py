@@ -21,11 +21,11 @@ class InkscapeSVG:
 
         cmd = ["inkscape","--version"]
         result = subprocess.check_output(cmd)
-        
+
         if result.split()[1].decode().startswith("1."):
             self._use_new_cmd_line = True
         else:
-            self._use_new_cmd_line = False 
+            self._use_new_cmd_line = False
 
         self._svg_file = svg_file
 
@@ -63,13 +63,20 @@ class InkscapeSVG:
             try:
                 group_type = g.attributes['inkscape:groupmode'].value
                 if group_type != "layer":
-                    continue
+                    raise KeyError
+
+            # If the inkscape layer isn't found, try to parse by id (allows
+            # this to parse illustrator svg files)
             except KeyError:
-                continue
+                try:
+                    second_check = g.attributes["id"].value.lower()
+                    if not second_check.startswith("layer"):
+                        continue
+                except KeyError:
+                    continue
 
             # Grab the layer id
             layer_id = g.attributes['id'].value
-
             self._layer_list.append(layer_id)
 
 
