@@ -1,6 +1,9 @@
 {
     "slide_break":">>>",
     "processors":{
+        "CustomMDProcessor":{
+            "target_dir":"slidemachine_media",
+            "prev_build_json":"prev-build.json"},
         "InkscapeProcessor":{
             "target_dir":"slidemachine_media",
             "img_format":"png",
@@ -14,6 +17,9 @@
         "VideoProcessor":{
             "target_dir":"slidemachine_media",
             "pattern":"!\\[sm.video\\]",
+            "prev_build_json":"prev-build.json"},
+        "FileProcessor":{
+            "target_dir":"slidemachine_media",
             "prev_build_json":"prev-build.json"}
      }
 }
