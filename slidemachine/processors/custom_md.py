@@ -24,7 +24,7 @@ class CustomMDProcessor(Processor):
         pattern = re.compile("@.*?@")
         matches = pattern.findall(line)
         for m in matches:
-            replacement = f"<small>{m[1:-1]}</small>"
+            replacement = r"<small>{}</small>".format(re.escape(m[1:-1]))
             line = pattern.sub(replacement,line)
 
         return line

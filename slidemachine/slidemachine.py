@@ -395,7 +395,6 @@ class SlideMachine:
         # Apply processors
         for i, slide in enumerate(self._slides):
             print("Processing slide {} of {}\n".format(i+1,len(self._slides)))
-            print(slide.markdown)
             for processor in self._processors:
                 slide.apply(processor)
 
